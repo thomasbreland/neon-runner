@@ -1,11 +1,14 @@
 {
   "name": "neon-runner",
   "version": "0.1.0",
-  "description": "Neon Runner — a three.js endless-runner game served by a tiny Node static server",
+  "description": "Neon Runner — a three.js endless-runner game built and served statically with Vite",
   "scripts": {
-    "start": "node server.js"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "three": "^0.186.1"
+    "three": "^0.186.1",
+    "vite": "^8.3.3"
   }
 }

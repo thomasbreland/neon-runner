@@ -1,4 +1,4 @@
-// Neon Runner — endless 3D runner. Module script; three.js loaded via importmap.
+// Neon Runner — endless 3D runner. Module script; three.js bundled by Vite.
 import * as THREE from "three";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
