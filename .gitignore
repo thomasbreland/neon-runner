@@ -1,0 +1,7 @@
+.vscode/
+plan.md
+
+node_modules/
+
+dist/
+build/

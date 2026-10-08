@@ -1,0 +1,11 @@
+{
+  "name": "neon-runner",
+  "version": "0.1.0",
+  "description": "Neon Runner — a three.js endless-runner game served by a tiny Node static server",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "three": "^0.186.1"
+  }
+}
