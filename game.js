@@ -479,7 +479,7 @@ let composer = null;
 try {
   composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  composer.addPass(new UnrealBloomPass(new THREE.Vector2(1280, 720), 0.95, 0.55, 0.3));
+  composer.addPass(new UnrealBloomPass(new THREE.Vector2(1280, 720), 0.45, 0.55, 0.3));
   composer.addPass(new OutputPass());
 } catch (e) {
   composer = null;
