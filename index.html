@@ -4,33 +4,41 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>Neon Runner</title>
+  <!-- Web-app manifest: opening the game in standalone web-app mode (Add to
+       Home Screen / Safari web-app mode) disables iOS system gestures like
+       swipe-to-go-back, which otherwise hijack edge swipes on the canvas. -->
+  <link rel="manifest" href="manifest.webmanifest" />
   <style>
-    html, body { margin: 0; padding: 0; background: #0a0418; overflow: hidden; }
+    :root { --ui-scale: 1; }
+    /* iOS Safari ignores user-scalable=no, so double-tap zoom must be blocked
+       via touch-action. touch-action is NOT inherited, so apply it universally. */
+    *, *::before, *::after { touch-action: none; }
+    html, body { margin: 0; padding: 0; background: #0a0418; overflow: hidden; touch-action: none; }
     body { font-family: "Segoe UI", "Helvetica Neue", sans-serif; }
     #c { position: fixed; inset: 0; display: block; touch-action: none; }
 
     #hud {
-      position: fixed; top: 14px; left: 0; right: 0;
+      position: fixed; top: calc(14px * var(--ui-scale)); left: 0; right: 0;
       display: flex; justify-content: space-between;
-      padding: 0 18px; pointer-events: none;
+      padding: 0 calc(18px * var(--ui-scale)); pointer-events: none; touch-action: none;
       text-shadow: 0 0 12px #ff4bd8, 0 0 4px #7bdcff;
       color: #7bdcff;
     }
-    #score { font-size: 26px; font-weight: 700; letter-spacing: 1px; }
-    #speed { font-size: 16px; color: #ff4bd8; }
-    #best  { font-size: 16px; color: #ffd166; }
+    #score { font-size: calc(26px * var(--ui-scale)); font-weight: 700; letter-spacing: 1px; }
+    #speed { font-size: calc(16px * var(--ui-scale)); color: #ff4bd8; }
+    #best  { font-size: calc(16px * var(--ui-scale)); color: #ffd166; }
 
     #center {
       position: fixed; top: 34%; left: 0; right: 0;
-      text-align: center; pointer-events: none;
-      font-size: 44px; font-weight: 800; letter-spacing: 3px;
+      text-align: center; pointer-events: none; touch-action: none;
+      font-size: calc(44px * var(--ui-scale)); font-weight: 800; letter-spacing: 3px;
       color: #ff4bd8;
       text-shadow: 0 0 22px #ff4bd8, 0 0 6px #ffffff;
     }
     #sub {
       position: fixed; top: 44%; left: 0; right: 0;
-      text-align: center; pointer-events: none;
-      font-size: 17px; color: #7bdcff;
+      text-align: center; pointer-events: none; touch-action: none;
+      font-size: calc(17px * var(--ui-scale)); color: #7bdcff;
       text-shadow: 0 0 10px #7bdcff;
       white-space: pre;
     }
@@ -38,36 +46,68 @@
     /* Touch control widget — shown only on coarse-pointer (touch) devices. */
     #touchpad {
       position: fixed; inset: 0; pointer-events: none;
-      display: none;
+      display: none; touch-action: none;
     }
     @media (pointer: coarse) {
       #touchpad { display: block; }
     }
     #touchpad .btn {
       position: fixed;
-      width: 48px; height: 48px;
-      border-radius: 12px;
+      width: calc(48px * var(--ui-scale)); height: calc(48px * var(--ui-scale));
+      border-radius: calc(12px * var(--ui-scale));
       background: rgba(10, 4, 24, 0.35);
       border: 1.5px solid rgba(123, 220, 255, 0.55);
       box-shadow: 0 0 10px rgba(123, 220, 255, 0.35);
       color: #7bdcff;
-      font-size: 20px; line-height: 48px; text-align: center;
+      font-size: calc(20px * var(--ui-scale)); line-height: calc(48px * var(--ui-scale)); text-align: center;
       pointer-events: auto;
       touch-action: none;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
-    /* D-pad cluster in the bottom-right corner (48px cells, 4px gaps). */
-    #touchpad #btn-up    { right: calc(64px + env(safe-area-inset-right, 0px)); bottom: calc(116px + env(safe-area-inset-bottom, 0px)); }
-    #touchpad #btn-down  { right: calc(64px + env(safe-area-inset-right, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
-    #touchpad #btn-left  { right: calc(116px + env(safe-area-inset-right, 0px)); bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
-    #touchpad #btn-right { right: calc(12px + env(safe-area-inset-right, 0px)); bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+    /* D-pad cluster in the bottom-right corner (cells + gaps scale with --ui-scale). */
+    #touchpad #btn-up    { right: calc(calc(64px * var(--ui-scale)) + env(safe-area-inset-right, 0px)); bottom: calc(calc(116px * var(--ui-scale)) + env(safe-area-inset-bottom, 0px)); }
+    #touchpad #btn-down  { right: calc(calc(64px * var(--ui-scale)) + env(safe-area-inset-right, 0px)); bottom: calc(calc(12px * var(--ui-scale)) + env(safe-area-inset-bottom, 0px)); }
+    #touchpad #btn-left  { right: calc(calc(116px * var(--ui-scale)) + env(safe-area-inset-right, 0px)); bottom: calc(calc(64px * var(--ui-scale)) + env(safe-area-inset-bottom, 0px)); }
+    #touchpad #btn-right { right: calc(calc(12px * var(--ui-scale)) + env(safe-area-inset-right, 0px)); bottom: calc(calc(64px * var(--ui-scale)) + env(safe-area-inset-bottom, 0px)); }
     /* Pause sits under the BEST readout, which is right-aligned in the HUD. */
     #touchpad #pause-btn {
-      top: calc(48px + env(safe-area-inset-top, 0px));
+      top: calc(calc(48px * var(--ui-scale)) + env(safe-area-inset-top, 0px));
       right: calc(18px + env(safe-area-inset-right, 0px));
-      width: 44px; height: 44px; line-height: 44px; font-size: 18px;
-      border-radius: 12px;
+      width: calc(44px * var(--ui-scale)); height: calc(44px * var(--ui-scale));
+      line-height: calc(44px * var(--ui-scale)); font-size: calc(18px * var(--ui-scale));
+      border-radius: calc(12px * var(--ui-scale));
+    }
+
+    /* UI-size slider — only shown while paused, on touch devices. */
+    #uiscale {
+      position: fixed; bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+      left: 50%; transform: translateX(-50%);
+      width: 160px; height: 8px; margin: -4px 0;
+      border-radius: 4px;
+      background: rgba(123, 220, 255, 0.25);
+      pointer-events: none; touch-action: none;
+      display: none;
+    }
+    #uiscale .handle {
+      position: absolute; top: 50%; left: 50%;
+      width: 36px; height: 36px; margin: -18px 0 0 -18px;
+      border-radius: 50%;
+      background: #7bdcff;
+      box-shadow: 0 0 12px rgba(123, 220, 255, 0.8);
+      pointer-events: auto; touch-action: none;
+    }
+    /* Sits above the track, clear of the 36px handle (which reaches 14px past it). */
+    #uiscale .label {
+      position: absolute; bottom: calc(22px + 6px * var(--ui-scale)); left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      font-size: calc(14px * var(--ui-scale));
+      color: #7bdcff;
+      pointer-events: none;
+    }
+    @media (pointer: coarse) {
+      #uiscale.show { display: block; }
     }
   </style>
   <script>
@@ -99,6 +139,9 @@
     <div id="btn-down" class="btn">&#9660;</div>
     <div id="pause-btn" class="btn">&#10074;&#10074;</div>
   </div>
+
+  <!-- UI-size slider: shown only while paused, on touch devices. Drag the handle to resize touch UI. -->
+  <div id="uiscale"><div class="handle"></div><div class="label">UI Scale: 1.00</div></div>
 
   <script type="module" src="./game.js"></script>
 </body>

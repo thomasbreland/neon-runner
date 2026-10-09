@@ -1,0 +1,7 @@
+{
+  "name": "Neon Runner",
+  "display": "standalone",
+  "start_url": ".",
+  "theme_color": "#0a0418",
+  "background_color": "#0a0418"
+}

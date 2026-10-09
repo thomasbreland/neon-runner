@@ -298,6 +298,7 @@ function reset() {
   state = "play";
   centerEl.textContent = "";
   subEl.textContent = "";
+  setSliderVisible(false);
 }
 
 function die() {
@@ -310,6 +311,7 @@ function die() {
   }
   centerEl.textContent = "CRASHED";
   subEl.textContent = "press R or Enter to run again";
+  setSliderVisible(false);
 }
 
 // ---------- Update ----------
@@ -435,10 +437,12 @@ function togglePause() {
     state = "play";
     centerEl.textContent = "";
     subEl.textContent = "";
+    setSliderVisible(false);
   } else if (state === "play") {
     state = "paused";
     centerEl.textContent = "PAUSED";
     subEl.textContent = "press P to resume";
+    setSliderVisible(true);
   }
 }
 
@@ -484,9 +488,21 @@ canvas.addEventListener("pointerdown", (e) => {
   if (state === "dead") { reset(); return; }
   if (state === "menu") { reset(); return; }
   if (state === "paused") return;
+  // Edge exclusion zone: iOS Safari's system "swipe to go back / forward"
+  // gestures fire at the OS level when a touch starts within a strip of the
+  // screen edge, hijacking the swipe before any pointer events reach the page.
+  // Touches that begin inside this strip can never arm a swipe, so they can't
+  // produce half-actions; the corner D-pad widget covers strafing there.
+  const rect = canvas.getBoundingClientRect();
+  const EDGE = 40;
+  if (e.clientX < rect.left + EDGE || e.clientX > rect.right - EDGE) return;
+  // A second finger means a pinch is starting; don't arm a swipe for it.
+  if (activeTouch.size >= 2) return;
   gestures.set(e.pointerId, { x: e.clientX, y: e.clientY, armed: true });
 });
 canvas.addEventListener("pointermove", (e) => {
+  // While two fingers are down the user is pinching, not swiping.
+  if (activeTouch.size >= 2) return;
   const g = gestures.get(e.pointerId);
   if (!g || !g.armed) return;
   const rect = canvas.getBoundingClientRect();
@@ -538,6 +554,111 @@ controls.addEventListener(
   },
   { passive: false }
 );
+
+// ---------- UI-size slider (touch devices; visible only while paused) ----------
+const isTouch = matchMedia("(pointer: coarse)").matches;
+
+function setSliderVisible(on) {
+  const el = document.getElementById("uiscale");
+  if (!el) return;
+  el.classList.toggle("show", on && isTouch);
+}
+
+const sliderEl = document.getElementById("uiscale");
+const sliderHandle = sliderEl ? sliderEl.querySelector(".handle") : null;
+const sliderLabel = sliderEl ? sliderEl.querySelector(".label") : null;
+const MIN_UI_SCALE = 0.75;
+const MAX_UI_SCALE = 1.5;
+
+// Single source of truth for the UI scale: writes the CSS var and keeps the
+// pause-menu slider handle in sync, so a pinch-set scale is reflected there.
+function setUiScale(scale) {
+  const clamped = Math.max(MIN_UI_SCALE, Math.min(MAX_UI_SCALE, scale));
+  document.documentElement.style.setProperty("--ui-scale", String(clamped));
+  if (sliderLabel) sliderLabel.textContent = `UI Scale: ${clamped.toFixed(2)}`;
+  if (sliderHandle) {
+    const t = (clamped - MIN_UI_SCALE) / (MAX_UI_SCALE - MIN_UI_SCALE);
+    sliderHandle.style.left = `${18 + t * 124}px`;
+  }
+}
+
+if (sliderHandle) {
+  let dragging = false;
+
+  const applySlider = (x) => {
+    const rect = sliderEl.getBoundingClientRect();
+    const minX = rect.left + 18;
+    const maxX = rect.right - 18;
+    const t = Math.max(0, Math.min(1, (x - minX) / (maxX - minX)));
+    setUiScale(MIN_UI_SCALE + t * (MAX_UI_SCALE - MIN_UI_SCALE));
+  };
+
+  sliderHandle.addEventListener("pointerdown", (e) => {
+    if (state !== "paused" || !sliderEl.classList.contains("show")) return;
+    dragging = true;
+    applySlider(e.clientX);
+  });
+  sliderHandle.addEventListener("pointermove", (e) => {
+    if (dragging) applySlider(e.clientX);
+  });
+  sliderHandle.addEventListener("pointerup", () => { dragging = false; });
+  sliderHandle.addEventListener("pointercancel", () => { dragging = false; });
+}
+
+// ---------- Pinch-zoom: resize the UI with two fingers, any state ----------
+// Browser pinch-zoom is disabled (viewport user-scalable=no + touch-action:none),
+// so we drive --ui-scale ourselves. Two simultaneous touch points define a pinch;
+// the distance between them scales the UI from wherever it started. This works in
+// every state (menu / playing / paused / dead) and is independent of the slider.
+// Declared with var so the swipe handlers above can read it before this line runs.
+var activeTouch = new Map(); // pointerId -> { x, y }, touch pointers only
+let pinchStartDist = 0;
+let pinchStartScale = 1;
+let pinchActive = false;
+
+function currentUiScale() {
+  const raw = document.documentElement.style.getPropertyValue("--ui-scale");
+  const n = raw ? parseFloat(raw) : NaN;
+  return Number.isFinite(n) ? n : 1;
+}
+
+function beginPinch() {
+  const pts = [...activeTouch.values()];
+  const dx = pts[0].x - pts[1].x;
+  const dy = pts[0].y - pts[1].y;
+  pinchStartDist = Math.hypot(dx, dy);
+  pinchStartScale = currentUiScale();
+  pinchActive = pinchStartDist > 10;
+}
+
+function updatePinch() {
+  if (!pinchActive || activeTouch.size !== 2) return;
+  const pts = [...activeTouch.values()];
+  const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+  setUiScale(pinchStartScale * (dist / pinchStartDist));
+}
+
+document.addEventListener("pointerdown", (e) => {
+  if (e.pointerType !== "touch") return;
+  activeTouch.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (activeTouch.size === 2) beginPinch();
+});
+document.addEventListener("pointermove", (e) => {
+  if (e.pointerType !== "touch") return;
+  if (!activeTouch.has(e.pointerId)) return;
+  activeTouch.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  updatePinch();
+});
+document.addEventListener("pointerup", (e) => {
+  if (e.pointerType !== "touch") return;
+  activeTouch.delete(e.pointerId);
+  if (activeTouch.size < 2) pinchActive = false;
+});
+document.addEventListener("pointercancel", (e) => {
+  if (e.pointerType !== "touch") return;
+  activeTouch.delete(e.pointerId);
+  if (activeTouch.size < 2) pinchActive = false;
+});
 
 // ---------- Postprocessing (bloom) with fallback ----------
 let composer = null;

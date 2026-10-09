@@ -41,6 +41,11 @@ Deploy the `dist/` output to any static host.
 
 A compact corner widget also appears on touch devices as a fallback: a D-pad cluster (◀ ▲ ▼ ▶) in the bottom-right corner, and the pause button (`❚❚`) tucked under the best-score readout in the top right. Keyboard controls are unchanged on desktop; mouse drags on the canvas also register as swipes.
 
+**iOS Safari note:** iOS has a system-level "swipe to go back / forward" gesture that fires when a touch starts within a strip of the screen edge, hijacking the swipe before the page ever sees it — no CSS can suppress it. Two things mitigate this:
+
+- Swipes that start within 40px of the left or right screen edge are ignored (dead zone), so an edge swipe can never register as a half-action. Use the corner D-pad to strafe there, or start your swipe a little further in from the edge.
+- The page ships a web-app manifest (`manifest.webmanifest`, `display: standalone`). Add the game to the Home Screen and launch it in Safari's web-app mode: fullscreen web-app mode disables the system swipe gestures, so edge swipes work normally there.
+
 ## How it works
 
 - `index.html` — Vite's entry point; it loads `game.js` as a module. The bare `three` / `three/addons/*` imports in `game.js` are resolved from `node_modules` and bundled by Vite.
