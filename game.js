@@ -524,6 +524,21 @@ tapButton("btn-down", doSlide);
 // The pause button works in both play and paused states.
 document.getElementById("pause-btn").addEventListener("pointerdown", () => togglePause());
 
+// ---------- Prevent default gestures, e.g., double-tap zoom, on mobile controls ----------
+const controls = document.querySelector("#touchpad");
+let lastTouchEnd = 0;
+controls.addEventListener(
+  "touchend",
+  (event) => {
+    const now = performance.now();
+    if (now - lastTouchEnd <= 350) {
+      event.preventDefault();
+    }
+    lastTouchEnd = now;
+  },
+  { passive: false }
+);
+
 // ---------- Postprocessing (bloom) with fallback ----------
 let composer = null;
 try {
