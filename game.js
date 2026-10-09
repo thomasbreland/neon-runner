@@ -409,6 +409,39 @@ function update(dt) {
   camera.lookAt(player.position.x, 1.2, -4);
 }
 
+// ---------- Actions (shared by keyboard, swipe gestures and the touch widget) ----------
+function doStrafeLeft() {
+  laneTarget = Math.max(0, laneTarget - 1);
+}
+function doStrafeRight() {
+  laneTarget = Math.min(2, laneTarget + 1);
+}
+function doJump() {
+  if (grounded && sliding <= 0) {
+    vy = JUMP_V;
+    grounded = false;
+    sfxJump();
+  }
+}
+function doSlide() {
+  if (grounded) {
+    sliding = SLIDE_TIME;
+  } else {
+    vy = -JUMP_V * 0.6; // fast-fall while airborne
+  }
+}
+function togglePause() {
+  if (state === "paused") {
+    state = "play";
+    centerEl.textContent = "";
+    subEl.textContent = "";
+  } else if (state === "play") {
+    state = "paused";
+    centerEl.textContent = "PAUSED";
+    subEl.textContent = "press P to resume";
+  }
+}
+
 // ---------- Input ----------
 window.addEventListener("keydown", (e) => {
   const k = e.key.toLowerCase();
@@ -422,57 +455,74 @@ window.addEventListener("keydown", (e) => {
     return;
   }
   if (state === "paused") {
-    if (k === "p") {
-      state = "play";
-      centerEl.textContent = "";
-      subEl.textContent = "";
-    }
+    if (k === "p") togglePause();
     return;
   }
 
   // playing
   if (k === "p") {
-    state = "paused";
-    centerEl.textContent = "PAUSED";
-    subEl.textContent = "press P to resume";
+    togglePause();
     return;
   }
   if (k === "arrowleft" || k === "a") {
-    laneTarget = Math.max(0, laneTarget - 1);
+    doStrafeLeft();
   } else if (k === "arrowright" || k === "d") {
-    laneTarget = Math.min(2, laneTarget + 1);
+    doStrafeRight();
   } else if (k === "arrowup" || k === "w" || k === " ") {
-    if (grounded && sliding <= 0) {
-      vy = JUMP_V;
-      grounded = false;
-      sfxJump();
-    }
+    doJump();
   } else if (k === "arrowdown" || k === "s") {
-    if (grounded) {
-      sliding = SLIDE_TIME;
-    } else {
-      vy = -JUMP_V * 0.6; // fast-fall while airborne
-    }
+    doSlide();
   }
 });
 
+// ---------- Swipe gestures (touch / mouse drag on the canvas) ----------
+// One action per gesture: each pointerId tracks its origin and fires at most
+// once, so a long drag changes lanes a single time. Multi-touch works because
+// each finger has its own pointerId.
+const gestures = new Map();
 canvas.addEventListener("pointerdown", (e) => {
   if (state === "dead") { reset(); return; }
   if (state === "menu") { reset(); return; }
   if (state === "paused") return;
-  const rect = canvas.getBoundingClientRect();
-  const x = (e.clientX - rect.left) / rect.width;
-  const y = (e.clientY - rect.top) / rect.height;
-  if (y < 0.35) {
-    if (grounded && sliding <= 0) { vy = JUMP_V; grounded = false; sfxJump(); }
-  } else if (y > 0.65) {
-    if (grounded) sliding = SLIDE_TIME;
-  } else if (x < 0.5) {
-    laneTarget = Math.max(0, laneTarget - 1);
-  } else {
-    laneTarget = Math.min(2, laneTarget + 1);
-  }
+  gestures.set(e.pointerId, { x: e.clientX, y: e.clientY, armed: true });
 });
+canvas.addEventListener("pointermove", (e) => {
+  const g = gestures.get(e.pointerId);
+  if (!g || !g.armed) return;
+  const rect = canvas.getBoundingClientRect();
+  const T = Math.max(30, Math.min(rect.width, rect.height) * 0.07);
+  const dx = e.clientX - g.x;
+  const dy = e.clientY - g.y;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < T) return;
+  if (Math.abs(dx) > Math.abs(dy)) {
+    if (dx < 0) doStrafeLeft();
+    else doStrafeRight();
+  } else {
+    if (dy < 0) doJump();
+    else doSlide();
+  }
+  g.armed = false;
+});
+canvas.addEventListener("pointerup", (e) => gestures.delete(e.pointerId));
+canvas.addEventListener("pointercancel", (e) => gestures.delete(e.pointerId));
+
+// ---------- Touch widget buttons (corner fallback for touch devices) ----------
+function tapButton(id, action) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener("pointerdown", () => {
+    if (state === "menu" || state === "dead") { reset(); return; }
+    if (state === "paused") return;
+    action();
+  });
+}
+tapButton("btn-left", doStrafeLeft);
+tapButton("btn-right", doStrafeRight);
+tapButton("btn-up", doJump);
+tapButton("btn-down", doSlide);
+
+// The pause button works in both play and paused states.
+document.getElementById("pause-btn").addEventListener("pointerdown", () => togglePause());
 
 // ---------- Postprocessing (bloom) with fallback ----------
 let composer = null;
