@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>Neon Runner</title>
   <style>
     html, body { margin: 0; padding: 0; background: #0a0418; overflow: hidden; }
     body { font-family: "Segoe UI", "Helvetica Neue", sans-serif; }
-    #c { position: fixed; inset: 0; display: block; }
+    #c { position: fixed; inset: 0; display: block; touch-action: none; }
 
     #hud {
       position: fixed; top: 14px; left: 0; right: 0;
@@ -33,6 +34,41 @@
       text-shadow: 0 0 10px #7bdcff;
       white-space: pre;
     }
+
+    /* Touch control widget — shown only on coarse-pointer (touch) devices. */
+    #touchpad {
+      position: fixed; inset: 0; pointer-events: none;
+      display: none;
+    }
+    @media (pointer: coarse) {
+      #touchpad { display: block; }
+    }
+    #touchpad .btn {
+      position: fixed;
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      background: rgba(10, 4, 24, 0.35);
+      border: 1.5px solid rgba(123, 220, 255, 0.55);
+      box-shadow: 0 0 10px rgba(123, 220, 255, 0.35);
+      color: #7bdcff;
+      font-size: 20px; line-height: 48px; text-align: center;
+      pointer-events: auto;
+      touch-action: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* D-pad cluster in the bottom-right corner (48px cells, 4px gaps). */
+    #touchpad #btn-up    { right: calc(64px + env(safe-area-inset-right, 0px)); bottom: calc(116px + env(safe-area-inset-bottom, 0px)); }
+    #touchpad #btn-down  { right: calc(64px + env(safe-area-inset-right, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+    #touchpad #btn-left  { right: calc(116px + env(safe-area-inset-right, 0px)); bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+    #touchpad #btn-right { right: calc(12px + env(safe-area-inset-right, 0px)); bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+    /* Pause sits under the BEST readout, which is right-aligned in the HUD. */
+    #touchpad #pause-btn {
+      top: calc(48px + env(safe-area-inset-top, 0px));
+      right: calc(18px + env(safe-area-inset-right, 0px));
+      width: 44px; height: 44px; line-height: 44px; font-size: 18px;
+      border-radius: 12px;
+    }
   </style>
   <script>
     // Page-level error collector so verification can detect silent failures.
@@ -54,6 +90,16 @@
   </div>
   <div id="center"></div>
   <div id="sub"></div>
+
+  <!-- Touch controls: swipe anywhere on the canvas, or tap this corner widget. -->
+  <div id="touchpad">
+    <div id="btn-left" class="btn">&#9664;</div>
+    <div id="btn-right" class="btn">&#9654;</div>
+    <div id="btn-up" class="btn">&#9650;</div>
+    <div id="btn-down" class="btn">&#9660;</div>
+    <div id="pause-btn" class="btn">&#10074;&#10074;</div>
+  </div>
+
   <script type="module" src="./game.js"></script>
 </body>
 </html>

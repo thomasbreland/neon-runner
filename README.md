@@ -28,7 +28,18 @@ Deploy the `dist/` output to any static host.
 | Pause         | `P`                         |
 | Restart       | `R` / `Enter`               |
 
-Touch: tap the left/right halves of the canvas to strafe, top half to jump, bottom half to slide.
+**Touch / mobile** — swipe anywhere on the canvas (one action per swipe, even on long drags):
+
+| Action        | Gesture                          |
+| ------------- | -------------------------------- |
+| Move left     | Swipe `←`                        |
+| Move right    | Swipe `→`                        |
+| Jump          | Swipe `↑`                        |
+| Slide         | Swipe `↓` (fast-falls if airborne) |
+| Pause         | Tap the `❚❚` button (top right, under the best score) |
+| Restart       | Tap anywhere                     |
+
+A compact corner widget also appears on touch devices as a fallback: a D-pad cluster (◀ ▲ ▼ ▶) in the bottom-right corner, and the pause button (`❚❚`) tucked under the best-score readout in the top right. Keyboard controls are unchanged on desktop; mouse drags on the canvas also register as swipes.
 
 ## How it works
 
