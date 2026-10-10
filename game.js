@@ -310,7 +310,7 @@ function die() {
     try { localStorage.setItem("neonRunnerBest", String(best)); } catch (e) { /* private mode */ }
   }
   centerEl.textContent = "CRASHED";
-  subEl.textContent = "press R or Enter to run again";
+  subEl.textContent = isTouch ? "tap to run again" : "press R or Enter to run again";
   setSliderVisible(false);
 }
 
@@ -441,7 +441,7 @@ function togglePause() {
   } else if (state === "play") {
     state = "paused";
     centerEl.textContent = "PAUSED";
-    subEl.textContent = "press P to resume";
+    subEl.textContent = isTouch ? "tap \u275a\u275a to resume" : "press P to resume";
     setSliderVisible(true);
   }
 }
@@ -685,7 +685,23 @@ resize();
 
 // ---------- Menu attract screen ----------
 centerEl.textContent = "NEON RUNNER";
-subEl.textContent = "press any key to start";
+if (isTouch) {
+  subEl.textContent =
+    "tap to start\n\n" +
+    "swipe \u2190   move left\n" +
+    "swipe \u2192   move right\n" +
+    "swipe \u2191   jump\n" +
+    "swipe \u2193   slide\n" +
+    "\u275a\u275a   pause";
+} else {
+  subEl.textContent =
+    "press any key to start\n\n" +
+    "\u2190 / A   move left\n" +
+    "\u2192 / D   move right\n" +
+    "\u2191 / W / Space   jump\n" +
+    "\u2193 / S   slide\n" +
+    "P   pause";
+}
 
 // ---------- Main loop ----------
 let last = performance.now();
