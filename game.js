@@ -278,6 +278,7 @@ let sliding = 0;
 let shake = 0;
 let nextSpawn = 0;
 let nextPillar = 0;
+let deadAngle = 0; // camera orbit angle while crashed
 
 function reset() {
   for (const w of world) scene.remove(w.mesh);
@@ -295,6 +296,8 @@ function reset() {
   nextPillar = 0;
   player.position.set(0, 0, 0);
   player.scale.set(1, 1, 1);
+  deadAngle = 0;
+  camera.position.set(0, 3.4, 7.5);
   state = "play";
   centerEl.textContent = "";
   subEl.textContent = "";
@@ -316,7 +319,21 @@ function die() {
 
 // ---------- Update ----------
 function update(dt) {
-  if (state === "paused" || state === "dead") return;
+  if (state === "paused") return;
+  if (state === "dead") {
+    // slow-motion camera orbit around the crashed runner
+    deadAngle += dt * 0.9;
+    const r = 8;
+    camera.position.set(
+      player.position.x + Math.sin(deadAngle) * r,
+      3.4,
+      player.position.z + Math.cos(deadAngle) * r
+    );
+    camera.fov = 60;
+    camera.updateProjectionMatrix();
+    camera.lookAt(player.position.x, player.position.y + 1, player.position.z);
+    return;
+  }
 
   if (state === "play" || state === "menu") {
     if (state === "play") {
