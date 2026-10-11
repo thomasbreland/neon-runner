@@ -4,6 +4,33 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>Neon Runner</title>
+
+  <!-- ===== Social / link-preview metadata =====
+       Absolute URLs are required — crawlers don't resolve relative ones. -->
+  <meta property="og:site_name" content="Neon Runner" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Neon Runner" />
+  <meta property="og:description" content="A neon endless-runner built with three.js — swipe to dodge, collect the coin ring, beat your best." />
+  <meta property="og:url" content="https://thomasbreland.github.io/neon-runner/" />
+  <meta property="og:image" content="https://thomasbreland.github.io/neon-runner/og-image.png" />
+  <meta property="og:image:width" content="4800" />
+  <meta property="og:image:height" content="2520" />
+  <meta property="og:image:alt" content="Neon Runner — the player framed by a ring of coins under a synthwave sun" />
+  <meta property="og:locale" content="en_US" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Neon Runner" />
+  <meta name="twitter:description" content="A neon endless-runner built with three.js — swipe to dodge, collect the coin ring, beat your best." />
+  <meta name="twitter:image" content="https://thomasbreland.github.io/neon-runner/og-image.png" />
+
+  <!-- Favicons: SVG first (modern browsers scale it), PNG fallbacks after.
+       apple-touch-icon must come AFTER the SVG link — Safari ignores the
+       SVG and picks the 180px PNG from these. Sizes match the icons
+       vite-plugin-pwa generates from public/icon.svg. -->
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
+  <link rel="icon" href="/favicon-192x192.png" sizes="192x192" type="image/png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon-256x256.png" sizes="256x256" />
+
   <!-- Web-app manifest: opening the game in standalone web-app mode (Add to
        Home Screen / Safari web-app mode) disables iOS system gestures like
        swipe-to-go-back, which otherwise hijack edge swipes on the canvas.
