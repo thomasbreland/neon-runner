@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Neon Runner app icon: dark rounded square with a neon runner glyph -->
+  <rect x="0" y="0" width="512" height="512" rx="96" ry="96" fill="#0a0418"/>
+  <!-- speed streaks -->
+  <g stroke="#22d9ff" stroke-width="14" stroke-linecap="round" opacity="0.55">
+    <line x1="72" y1="196" x2="176" y2="196"/>
+    <line x1="56" y1="256" x2="152" y2="256"/>
+    <line x1="72" y1="316" x2="176" y2="316"/>
+  </g>
+  <!-- runner glyph: leaning chevron figure, magenta with glow -->
+  <g filter="url(#glow)">
+    <path d="M 240 96 L 416 256 L 352 256 L 176 96 Z" fill="#ff4bd8"/>
+    <path d="M 176 256 L 352 256 L 288 416 L 112 416 Z" fill="#ff4bd8"/>
+  </g>
+  <!-- head -->
+  <circle cx="304" cy="72" r="34" fill="#7bdcff" filter="url(#glow)"/>
+  <defs>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+</svg>

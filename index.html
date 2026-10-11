@@ -6,8 +6,8 @@
   <title>Neon Runner</title>
   <!-- Web-app manifest: opening the game in standalone web-app mode (Add to
        Home Screen / Safari web-app mode) disables iOS system gestures like
-       swipe-to-go-back, which otherwise hijack edge swipes on the canvas. -->
-  <link rel="manifest" href="manifest.webmanifest" />
+       swipe-to-go-back, which otherwise hijack edge swipes on the canvas.
+       The manifest <link> itself is injected by vite-plugin-pwa at build time. -->
   <style>
     :root { --ui-scale: 1; }
     /* iOS Safari ignores user-scalable=no, so double-tap zoom must be blocked
